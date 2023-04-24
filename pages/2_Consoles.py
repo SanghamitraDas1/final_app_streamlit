@@ -87,13 +87,12 @@ def create_console_sales_chart(chosen_console):
     return console_sales_chart    
 
 
-
-if console == "":
-    pass
-
 tab1, tab2, tab3, tab4 = st.tabs(["History", "Ratings", "Reviews", "Console Sales"])
 
 with tab1:
+    if reviews.get(console) == " ":
+        st.write("Please make a selection to see further")
+
     if console == 'Playstation5':
         ps = 'files/playstation.md'
         ps_text = open(ps,"r").read()
@@ -110,6 +109,9 @@ with tab1:
         st.markdown(ns_text)
 
 with tab2:
+    if reviews.get(console) == " ":
+       st.write("Please make a selection to see further")
+
     if reviews.get(console) != " ":
         st.write(reviews.get(console))
         df = pd.read_csv(reviews.get(console))
@@ -127,6 +129,9 @@ with tab2:
         st.write(ratings_line_chart)
     
 with tab3:
+    if reviews.get(console) == " ":
+       st.write("Please make a selection to see further")
+
     if reviews.get(console) != " ":
         df = pd.read_csv(reviews.get(console))
         #st.write(df.isna().sum())
@@ -234,6 +239,9 @@ with tab3:
                 pass
 
 with tab4:
+    if reviews.get(console) == " ":
+       st.write("Please make a selection to see further")
+
     if console == 'Playstation5':
         ps5_sales_chart = create_console_sales_chart("PlayStation 5 (PS5)")
         st.write(ps5_sales_chart)
