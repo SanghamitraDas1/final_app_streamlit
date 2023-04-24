@@ -3,15 +3,15 @@ import streamlit as st
 import re
 import string
 from textblob import TextBlob
-from plotly.offline import iplot
+#from plotly.offline import iplot
 import altair as alt
 from wordcloud import WordCloud, STOPWORDS
 from collections import defaultdict
-import plotly
+#import plotly
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
-import seaborn as sns
-from plotly import tools
+#from matplotlib import rcParams
+#import seaborn as sns
+#from plotly import tools
 
 st.set_page_config(layout='wide')
 st.set_option('deprecation.showPyplotGlobalUse', False)
