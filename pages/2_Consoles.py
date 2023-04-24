@@ -109,8 +109,9 @@ with tab1:
         ns_text = open(ns,"r").read()
         st.markdown(ns_text)
 
-with tab2: 
+with tab2:
     if reviews.get(console) != " ":
+        st.write(reviews.get(console))
         df = pd.read_csv(reviews.get(console))
         df['Review Year'] = df['Review Year'].astype(str) 
         new_df = df.groupby(['Ratings','Review Year'])['Review Year'].count().reset_index(name='counts')
@@ -126,111 +127,111 @@ with tab2:
         st.write(ratings_line_chart)
     
 with tab3:
-    
-    df = pd.read_csv(reviews.get(console))
-    #st.write(df.isna().sum())
-    df.dropna(inplace=True)
-    #st.write(df.isna().sum())
-    df.reset_index(inplace=True)
-    #st.write(df.tail())
-    df.drop('index', axis=1, inplace=True)
-    #st.write(df.tail())
+    if reviews.get(console) != " ":
+        df = pd.read_csv(reviews.get(console))
+        #st.write(df.isna().sum())
+        df.dropna(inplace=True)
+        #st.write(df.isna().sum())
+        df.reset_index(inplace=True)
+        #st.write(df.tail())
+        df.drop('index', axis=1, inplace=True)
+        #st.write(df.tail())
 
-    def deEmojify(x):
-        regress_pattern =re.compile(pattern = "["
-                                    u"\U0001F600-\U0001F64F" #emoticons
-                                    u"\U0001F300-\U0001F5FF" #symbols and pictographs
-                                    u"\U0001F680-\U0001F6FF" #transport and map symbols
-                                    u"\U0001F1E0-\U0001F1FF" #flags
-                                    "]+", flags = re.UNICODE)
-        return regress_pattern.sub(r'', x)
-    
-    def review_cleaning(text):
-        '''Make text lower case, remove text in square brackets, remove links, remove punctuation and remove words containg numbers.'''
-        text = str(text).lower()
-        text = re.sub('\[.*?\]', '', text)
-        text = re.sub('https?://\S+|www\.\S+', '', text)
-        text = re.sub('<.*?>+', '', text)
-        text = re.sub('[%s]' % re.escape(string.punctuation), '', text)
-        text = re.sub('\n', '', text)
-        text = re.sub('\w*\d\w*', '', text)
-        text = deEmojify(text)
-        text = text.strip()
-        return text
-    
-    def f(row):
-        '''This function returns sentiment value based on the overall ratings from user'''
-        if row['Ratings'] == 3.0:
-            val = 'Neutral'
-        elif row['Ratings'] == 1.0 or row['Ratings'] == 2.0:
-            val = 'Negative'
-        elif row['Ratings'] == 4.0 or row['Ratings'] == 5.0:
-            val = 'Positive'
-        else:
-            val = -1
-        return val
-    
-    df['Cleaned Review'] = df['Review'].apply(review_cleaning)
-    df['Sentiment'] = df.apply(f, axis=1)
-    df['Polarity'] = df['Cleaned Review'].map(lambda text: TextBlob(text).sentiment.polarity)
-    df['review_len'] = df['Cleaned Review'].astype(str).apply(len)
-    df['word_count'] = df['Cleaned Review'].apply(lambda x:len(str(x).split()))
-
-    sentiments = ["Positive","Negative"]
-    sentiment_choice=st.multiselect("Choose the sentiment",sentiments)
-    viz_selection=st.radio("Select your viz",['Wordcloud','Bar Chart'])
-    
-    if viz_selection=='Wordcloud':
-
-        #st.write(df)
-        # sentiments = ["Positive","Negative"]
-        # sentiment_choice=st.multiselect("Choose a sentiment",sentiments)
+        def deEmojify(x):
+            regress_pattern =re.compile(pattern = "["
+                                        u"\U0001F600-\U0001F64F" #emoticons
+                                        u"\U0001F300-\U0001F5FF" #symbols and pictographs
+                                        u"\U0001F680-\U0001F6FF" #transport and map symbols
+                                        u"\U0001F1E0-\U0001F1FF" #flags
+                                        "]+", flags = re.UNICODE)
+            return regress_pattern.sub(r'', x)
         
-        if sentiment_choice == ["Positive"]:
-            review_pos = df[df["Sentiment"]=='Positive'].dropna()
-            fig_pos = create_wordcloud(review_pos)
-            st.pyplot(fig_pos,use_container_width=False)
-            # st.image(,width=2)
-
+        def review_cleaning(text):
+            '''Make text lower case, remove text in square brackets, remove links, remove punctuation and remove words containg numbers.'''
+            text = str(text).lower()
+            text = re.sub('\[.*?\]', '', text)
+            text = re.sub('https?://\S+|www\.\S+', '', text)
+            text = re.sub('<.*?>+', '', text)
+            text = re.sub('[%s]' % re.escape(string.punctuation), '', text)
+            text = re.sub('\n', '', text)
+            text = re.sub('\w*\d\w*', '', text)
+            text = deEmojify(text)
+            text = text.strip()
+            return text
         
-        elif sentiment_choice == ["Negative"]:
-            review_neg = df[df["Sentiment"]=='Negative'].dropna()
-            fig_neg = create_wordcloud(review_neg)
-            st.pyplot(fig_neg,use_container_width=False)
+        def f(row):
+            '''This function returns sentiment value based on the overall ratings from user'''
+            if row['Ratings'] == 3.0:
+                val = 'Neutral'
+            elif row['Ratings'] == 1.0 or row['Ratings'] == 2.0:
+                val = 'Negative'
+            elif row['Ratings'] == 4.0 or row['Ratings'] == 5.0:
+                val = 'Positive'
+            else:
+                val = -1
+            return val
         
-        elif set(sentiment_choice) == set(sentiments):
-            review_pos = df[df["Sentiment"]=='Positive'].dropna()
-            review_neg = df[df["Sentiment"]=='Negative'].dropna()
-            fig_pos = create_wordcloud(review_pos)
-            st.pyplot(fig_pos,use_container_width=False)
-            fig_neg = create_wordcloud(review_neg)
-            st.pyplot(fig_neg,use_container_width=False)
+        df['Cleaned Review'] = df['Review'].apply(review_cleaning)
+        df['Sentiment'] = df.apply(f, axis=1)
+        df['Polarity'] = df['Cleaned Review'].map(lambda text: TextBlob(text).sentiment.polarity)
+        df['review_len'] = df['Cleaned Review'].astype(str).apply(len)
+        df['word_count'] = df['Cleaned Review'].apply(lambda x:len(str(x).split()))
+
+        sentiments = ["Positive","Negative"]
+        sentiment_choice=st.multiselect("Choose the sentiment",sentiments)
+        viz_selection=st.radio("Select your viz",['Wordcloud','Bar Chart'])
         
-        
-        else:
-            pass
-    
-    else:
-        review_pos = df[df["Sentiment"] == 'Positive'].dropna()
-        review_neu = df[df["Sentiment"] == 'Neutral'].dropna()
-        review_neg = df[df["Sentiment"] == 'Negative'].dropna()
+        if viz_selection=='Wordcloud':
 
-        if sentiment_choice == ["Positive"]:
-            bar_chart_pos = create_bar_chart(review_pos, 'blue')
-            st.write(bar_chart_pos)
+            #st.write(df)
+            # sentiments = ["Positive","Negative"]
+            # sentiment_choice=st.multiselect("Choose a sentiment",sentiments)
+            
+            if sentiment_choice == ["Positive"]:
+                review_pos = df[df["Sentiment"]=='Positive'].dropna()
+                fig_pos = create_wordcloud(review_pos)
+                st.pyplot(fig_pos,use_container_width=False)
+                # st.image(,width=2)
 
-        elif sentiment_choice == ["Negative"]:
-            bar_chart_neg = create_bar_chart(review_neg, 'orange')
-            st.write(bar_chart_neg)
-
-        elif set(sentiment_choice) == set(sentiments):
-            bar_chart_pos = create_bar_chart(review_pos, 'blue')
-            st.write(bar_chart_pos)
-            bar_chart_neg = create_bar_chart(review_neg, 'orange')
-            st.write(bar_chart_neg)
+            
+            elif sentiment_choice == ["Negative"]:
+                review_neg = df[df["Sentiment"]=='Negative'].dropna()
+                fig_neg = create_wordcloud(review_neg)
+                st.pyplot(fig_neg,use_container_width=False)
+            
+            elif set(sentiment_choice) == set(sentiments):
+                review_pos = df[df["Sentiment"]=='Positive'].dropna()
+                review_neg = df[df["Sentiment"]=='Negative'].dropna()
+                fig_pos = create_wordcloud(review_pos)
+                st.pyplot(fig_pos,use_container_width=False)
+                fig_neg = create_wordcloud(review_neg)
+                st.pyplot(fig_neg,use_container_width=False)
+            
+            
+            else:
+                pass
         
         else:
-            pass
+            review_pos = df[df["Sentiment"] == 'Positive'].dropna()
+            review_neu = df[df["Sentiment"] == 'Neutral'].dropna()
+            review_neg = df[df["Sentiment"] == 'Negative'].dropna()
+
+            if sentiment_choice == ["Positive"]:
+                bar_chart_pos = create_bar_chart(review_pos, 'blue')
+                st.write(bar_chart_pos)
+
+            elif sentiment_choice == ["Negative"]:
+                bar_chart_neg = create_bar_chart(review_neg, 'orange')
+                st.write(bar_chart_neg)
+
+            elif set(sentiment_choice) == set(sentiments):
+                bar_chart_pos = create_bar_chart(review_pos, 'blue')
+                st.write(bar_chart_pos)
+                bar_chart_neg = create_bar_chart(review_neg, 'orange')
+                st.write(bar_chart_neg)
+            
+            else:
+                pass
 
 with tab4:
     if console == 'Playstation5':
